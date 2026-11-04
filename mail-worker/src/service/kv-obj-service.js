@@ -20,7 +20,12 @@ const kvObjService = {
 	async getObj(c, key) {
 		const obj = await c.env.kv.getWithMetadata(key, { type: "arrayBuffer"});
 		if (!obj.value) {
-			return null;
+			const archived = await c.env.MAIL_ARCHIVE?.get(key);
+			if (!archived) return null;
+			const headers = new Headers();
+			archived.writeHttpMetadata(headers);
+			headers.set('ETag', archived.httpEtag);
+			return new Response(archived.body, { headers });
 		}
 
 		return new Response(obj.value, {
