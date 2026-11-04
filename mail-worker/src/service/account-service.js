@@ -108,7 +108,9 @@ const accountService = {
 	},
 
 	selectByEmailIncludeDel(c, email) {
-		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE = ${email}`).get();
+		const canonical = typeof email === 'string' ? email.replace(/@1eak\.cool$/i, '@1eak.me') : email;
+		const legacy = typeof email === 'string' ? email.replace(/@1eak\.me$/i, '@1eak.cool') : email;
+		return orm(c).select().from(account).where(sql`${account.email} COLLATE NOCASE IN (${canonical}, ${legacy})`).get();
 	},
 
 	list(c, params, userId) {
